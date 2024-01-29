@@ -252,7 +252,7 @@ async function run(platform: Platform): Promise<void> {
     core.startGroup(`🔗 Creating symlinks to executables...`)
 
     // If the alias already exists, remove it before renewing
-    if (fs.existsSync(godotAlias)) fs.rmSync(godotAlias)
+    if (fs.existsSync(godotAlias)) fs.unlinkSync(godotAlias)
 
     // Create alias
     fs.linkSync(godotExecutable, godotAlias)
@@ -263,7 +263,7 @@ async function run(platform: Platform): Promise<void> {
       const godotSharpDir = path.join(path.dirname(godotSharp), '../..')
 
       // If the alias already exists, remove it before renewing
-      if (fs.existsSync(godotSharpDirAlias)) fs.rmdirSync(godotSharpDirAlias)
+      if (fs.existsSync(godotSharpDirAlias)) fs.unlinkSync(godotSharpDirAlias)
 
       fs.symlinkSync(godotSharpDir, godotSharpDirAlias)
       core.info(`✅ Symlink to GodotSharp created at ${godotSharpDirAlias}`)

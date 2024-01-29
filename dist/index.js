@@ -203,7 +203,7 @@ function run(platform) {
             core.startGroup(`🔗 Creating symlinks to executables...`);
             // If the alias already exists, remove it before renewing
             if (fs.existsSync(godotAlias))
-                fs.rmSync(godotAlias);
+                fs.unlinkSync(godotAlias);
             // Create alias
             fs.linkSync(godotExecutable, godotAlias);
             core.info(`✅ Symlink to Godot created`);
@@ -213,7 +213,7 @@ function run(platform) {
                 const godotSharpDir = path_1.default.join(path_1.default.dirname(godotSharp), '../..');
                 // If the alias already exists, remove it before renewing
                 if (fs.existsSync(godotSharpDirAlias))
-                    fs.rmdirSync(godotSharpDirAlias);
+                    fs.unlinkSync(godotSharpDirAlias);
                 fs.symlinkSync(godotSharpDir, godotSharpDirAlias);
                 core.info(`✅ Symlink to GodotSharp created at ${godotSharpDirAlias}`);
             }
