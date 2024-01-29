@@ -341,7 +341,7 @@ async function run(platform: Platform): Promise<void> {
       const godotSharpDir = path.join(path.dirname(godotSharp), '../..')
 
       // If the alias already exists, remove it before renewing
-      if (fs.existsSync(godotSharpDirAlias)) fs.rmSync(godotSharpDirAlias)
+      if (fs.existsSync(godotSharpDirAlias)) fs.rmdirSync(godotSharpDirAlias)
 
       fs.symlinkSync(godotSharpDir, godotSharpDirAlias)
       core.info(`✅ Symlink to GodotSharp created at ${godotSharpDirAlias}`)
