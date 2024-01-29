@@ -211,6 +211,9 @@ function run(platform) {
             if (useDotnet) {
                 // Create symlink to GodotSharp directory
                 const godotSharpDir = path_1.default.join(path_1.default.dirname(godotSharp), '../..');
+                // If the alias already exists, remove it before renewing
+                if (fs.existsSync(godotSharpDirAlias))
+                    fs.rmSync(godotSharpDirAlias);
                 fs.symlinkSync(godotSharpDir, godotSharpDirAlias);
                 core.info(`✅ Symlink to GodotSharp created at ${godotSharpDirAlias}`);
             }
