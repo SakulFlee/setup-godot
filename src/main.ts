@@ -107,104 +107,136 @@ async function run(platform: Platform): Promise<void> {
     core.endGroup()
 
     // See if Godot is already installed.
-    core.startGroup(`🤔 Checking if Godot is already in cache...`)
-    const cached = await cache.restoreCache(
-      [godotInstallationPath, exportTemplatePath],
-      godotUrl
+    core.startGroup(`🤔 Checking if Godot is already installed ...`)
+    let executables: string[] = await findExecutablesRecursively(
+      platform,
+      installationDir,
+      ''
     )
 
-    let executables: string[]
-    if (!cached) {
-      // Download Godot
-      core.info(`🙃 Previous Godot download not found in cache`)
+    if (executables.length > 0) {
+        core.info(`🎉 Previous Godot installation found!`)
       core.endGroup()
 
-      core.startGroup(`📥 Downloading Godot to ${godotDownloadPath}...`)
-      const godotDownloadedPath = await toolsCache.downloadTool(
-        godotUrl,
-        godotDownloadPath
-      )
-      core.info(`✅ Godot downloaded to ${godotDownloadedPath}`)
-      core.endGroup()
-
-      core.startGroup(
-        `📥 Downloading Export Templates to ${exportTemplateDownloadPath}...`
-      )
-      const templateDownloadedPath = await toolsCache.downloadTool(
-        exportTemplateUrl,
-        exportTemplateDownloadPath
-      )
-      core.info(`✅ Export Templates downloaded to ${templateDownloadedPath}`)
-      core.endGroup()
-
-      // Extract Godot
-      core.startGroup(`📦 Extracting Godot to ${installationDir}...`)
-      const godotExtractedPath = await toolsCache.extractZip(
-        godotDownloadedPath,
-        installationDir
-      )
-      core.info(`✅ Godot extracted to ${godotExtractedPath}`)
-      core.endGroup()
-
-      // Show extracted Godot files recursively and list executables.
-      core.startGroup(`📄 Showing extracted files recursively...`)
+      core.startGroup(`📄 Showing installed files recursively...`)
       executables = await findExecutablesRecursively(
         platform,
         installationDir,
         ''
       )
-      core.info(`✅ Files shown`)
-      core.endGroup()
-
-      core.startGroup(
-        `📦 Extracting Export Templates to ${exportTemplatePath}...`
-      )
-      const exportTemplateExtractedPath = await toolsCache.extractZip(
-        templateDownloadedPath,
-        path.dirname(exportTemplatePath)
-      )
-      core.info(
-        `✅ Export Templates extracted to ${exportTemplateExtractedPath}`
-      )
-      fs.renameSync(
-        path.join(exportTemplateExtractedPath, 'templates'),
-        exportTemplatePath
-      )
-      core.info(
-        `✅ ${path.join(
-          path.dirname(exportTemplateExtractedPath),
-          'templates'
-        )} moved to ${exportTemplatePath}`
-      )
-      core.endGroup()
-
-      // Show extracted Export Template files recursively
-      core.startGroup(`📄 Showing extracted files recursively...`)
       await findExecutablesRecursively(platform, exportTemplatePath, '')
       core.info(`✅ Files shown`)
       core.endGroup()
-
-      // Save extracted Godot contents to cache
-      core.startGroup(`💾 Saving extracted Godot download to cache...`)
-      await cache.saveCache(
+    } else {
+      const cached = await cache.restoreCache(
         [godotInstallationPath, exportTemplatePath],
         godotUrl
       )
-      core.info(`✅ Godot saved to cache`)
-      core.endGroup()
-    } else {
-      core.info(`🎉 Previous Godot download found in cache!`)
-      core.endGroup()
+      
+      if (cached) {
+        core.info(`🎉 Previous Godot download found in cache!`)
+        core.endGroup()
+        
+        core.startGroup(`📄 Showing cached files recursively...`)
+        executables = await findExecutablesRecursively(
+          platform,
+          installationDir,
+          ''
+          )
+        await findExecutablesRecursively(platform, exportTemplatePath, '')
+        core.info(`✅ Files shown`)
+        core.endGroup()
+      } else {
+        // Download Godot
+        core.info(`🙃 Previous Godot download not found in cache`)
+        core.endGroup()
 
-      core.startGroup(`📄 Showing cached files recursively...`)
-      executables = await findExecutablesRecursively(
-        platform,
-        installationDir,
-        ''
-      )
-      await findExecutablesRecursively(platform, exportTemplatePath, '')
-      core.info(`✅ Files shown`)
-      core.endGroup()
+        core.startGroup(`📥 Downloading Godot to ${godotDownloadPath}...`)
+        var godotDownloadedPath;
+        if (!fs.existsSync(godotDownloadPath)) {
+          godotDownloadedPath = await toolsCache.downloadTool(
+            godotUrl,
+            godotDownloadPath
+          )
+          core.info(`✅ Godot downloaded to ${godotDownloadedPath}`)
+        } else {
+          godotDownloadedPath = godotDownloadPath;
+          core.info(`✅ Godot download already exists in ${godotDownloadPath}`)
+        }
+        core.endGroup()
+
+        core.startGroup(
+          `📥 Downloading Export Templates to ${exportTemplateDownloadPath}...`
+        )
+        var templateDownloadedPath;
+        if (!fs.existsSync(exportTemplateDownloadPath)) {
+          templateDownloadedPath = await toolsCache.downloadTool(
+            exportTemplateUrl,
+            exportTemplateDownloadPath
+          )
+          core.info(`✅ Export Templates downloaded to ${templateDownloadedPath}`)
+        } else {
+          templateDownloadedPath = exportTemplateDownloadPath;
+          core.info(`✅ Export Templates download already exists in ${exportTemplateDownloadPath}`)
+        }
+        core.endGroup()
+
+        // Extract Godot
+        core.startGroup(`📦 Extracting Godot to ${installationDir}...`)
+        const godotExtractedPath = await toolsCache.extractZip(
+          godotDownloadedPath,
+          installationDir
+        )
+        core.info(`✅ Godot extracted to ${godotExtractedPath}`)
+        core.endGroup()
+
+        // Show extracted Godot files recursively and list executables.
+        core.startGroup(`📄 Showing extracted files recursively...`)
+        executables = await findExecutablesRecursively(
+          platform,
+          installationDir,
+          ''
+        )
+        core.info(`✅ Files shown`)
+        core.endGroup()
+
+        core.startGroup(
+          `📦 Extracting Export Templates to ${exportTemplatePath}...`
+        )
+        const exportTemplateExtractedPath = await toolsCache.extractZip(
+          templateDownloadedPath,
+          path.dirname(exportTemplatePath)
+        )
+        core.info(
+          `✅ Export Templates extracted to ${exportTemplateExtractedPath}`
+        )
+        fs.renameSync(
+          path.join(exportTemplateExtractedPath, 'templates'),
+          exportTemplatePath
+        )
+        core.info(
+          `✅ ${path.join(
+            path.dirname(exportTemplateExtractedPath),
+            'templates'
+          )} moved to ${exportTemplatePath}`
+        )
+        core.endGroup()
+
+        // Show extracted Export Template files recursively
+        core.startGroup(`📄 Showing extracted files recursively...`)
+        await findExecutablesRecursively(platform, exportTemplatePath, '')
+        core.info(`✅ Files shown`)
+        core.endGroup()
+
+        // Save extracted Godot contents to cache
+        core.startGroup(`💾 Saving extracted Godot download to cache...`)
+        await cache.saveCache(
+          [godotInstallationPath, exportTemplatePath],
+          godotUrl
+        )
+        core.info(`✅ Godot saved to cache`)
+        core.endGroup()
+      }
     }
 
     core.startGroup(`🚀 Executables:`)
