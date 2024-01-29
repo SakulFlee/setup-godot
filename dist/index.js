@@ -117,12 +117,10 @@ function run(platform) {
             core.info(`✅ Working directories exist`);
             core.endGroup();
             // See if Godot is already installed.
-            core.startGroup(`🤔 Checking if Godot is already in cache...`);
-            const cached = yield cache.restoreCache([godotInstallationPath, exportTemplatePath], godotUrl);
-            let executables;
-            if (!cached) {
-                // Download Godot
-                core.info(`🙃 Previous Godot download not found in cache`);
+            core.startGroup(`🤔 Checking if Godot is already installed ...`);
+            let executables = yield (0, utils_1.findExecutablesRecursively)(platform, installationDir, '');
+            if (executables.length > 0) {
+                core.info(`🎉 Previous Godot installation found!`);
                 core.endGroup();
                 core.startGroup(`📥 Downloading Godot to ${godotDownloadPath}...`);
                 let godotDownloadedPath;
@@ -154,33 +152,74 @@ function run(platform) {
                 // Show extracted Godot files recursively and list executables.
                 core.startGroup(`📄 Showing extracted files recursively...`);
                 executables = yield (0, utils_1.findExecutablesRecursively)(platform, installationDir, '');
-                core.info(`✅ Files shown`);
-                core.endGroup();
-                core.startGroup(`📦 Extracting Export Templates to ${exportTemplatePath}...`);
-                const exportTemplateExtractedPath = yield toolsCache.extractZip(templateDownloadedPath, path_1.default.dirname(exportTemplatePath));
-                core.info(`✅ Export Templates extracted to ${exportTemplateExtractedPath}`);
-                fs.renameSync(path_1.default.join(exportTemplateExtractedPath, 'templates'), exportTemplatePath);
-                core.info(`✅ ${path_1.default.join(path_1.default.dirname(exportTemplateExtractedPath), 'templates')} moved to ${exportTemplatePath}`);
-                core.endGroup();
-                // Show extracted Export Template files recursively
-                core.startGroup(`📄 Showing extracted files recursively...`);
                 yield (0, utils_1.findExecutablesRecursively)(platform, exportTemplatePath, '');
                 core.info(`✅ Files shown`);
-                core.endGroup();
-                // Save extracted Godot contents to cache
-                core.startGroup(`💾 Saving extracted Godot download to cache...`);
-                yield cache.saveCache([godotInstallationPath, exportTemplatePath], godotUrl);
-                core.info(`✅ Godot saved to cache`);
                 core.endGroup();
             }
             else {
-                core.info(`🎉 Previous Godot download found in cache!`);
-                core.endGroup();
-                core.startGroup(`📄 Showing cached files recursively...`);
-                executables = yield (0, utils_1.findExecutablesRecursively)(platform, installationDir, '');
-                yield (0, utils_1.findExecutablesRecursively)(platform, exportTemplatePath, '');
-                core.info(`✅ Files shown`);
-                core.endGroup();
+                const cached = yield cache.restoreCache([godotInstallationPath, exportTemplatePath], godotUrl);
+                if (cached) {
+                    core.info(`🎉 Previous Godot download found in cache!`);
+                    core.endGroup();
+                    core.startGroup(`📄 Showing cached files recursively...`);
+                    executables = yield (0, utils_1.findExecutablesRecursively)(platform, installationDir, '');
+                    yield (0, utils_1.findExecutablesRecursively)(platform, exportTemplatePath, '');
+                    core.info(`✅ Files shown`);
+                    core.endGroup();
+                }
+                else {
+                    // Download Godot
+                    core.info(`🙃 Previous Godot download not found in cache`);
+                    core.endGroup();
+                    core.startGroup(`📥 Downloading Godot to ${godotDownloadPath}...`);
+                    let godotDownloadedPath;
+                    if (!fs.existsSync(godotDownloadPath)) {
+                        godotDownloadedPath = yield toolsCache.downloadTool(godotUrl, godotDownloadPath);
+                        core.info(`✅ Godot downloaded to ${godotDownloadedPath}`);
+                    }
+                    else {
+                        godotDownloadedPath = godotDownloadPath;
+                        core.info(`✅ Godot download already exists in ${godotDownloadPath}`);
+                    }
+                    core.endGroup();
+                    core.startGroup(`📥 Downloading Export Templates to ${exportTemplateDownloadPath}...`);
+                    let templateDownloadedPath;
+                    if (!fs.existsSync(exportTemplateDownloadPath)) {
+                        templateDownloadedPath = yield toolsCache.downloadTool(exportTemplateUrl, exportTemplateDownloadPath);
+                        core.info(`✅ Export Templates downloaded to ${templateDownloadedPath}`);
+                    }
+                    else {
+                        templateDownloadedPath = exportTemplateDownloadPath;
+                        core.info(`✅ Export Templates download already exists in ${exportTemplateDownloadPath}`);
+                    }
+                    core.endGroup();
+                    // Extract Godot
+                    core.startGroup(`📦 Extracting Godot to ${installationDir}...`);
+                    const godotExtractedPath = yield toolsCache.extractZip(godotDownloadedPath, installationDir);
+                    core.info(`✅ Godot extracted to ${godotExtractedPath}`);
+                    core.endGroup();
+                    // Show extracted Godot files recursively and list executables.
+                    core.startGroup(`📄 Showing extracted files recursively...`);
+                    executables = yield (0, utils_1.findExecutablesRecursively)(platform, installationDir, '');
+                    core.info(`✅ Files shown`);
+                    core.endGroup();
+                    core.startGroup(`📦 Extracting Export Templates to ${exportTemplatePath}...`);
+                    const exportTemplateExtractedPath = yield toolsCache.extractZip(templateDownloadedPath, path_1.default.dirname(exportTemplatePath));
+                    core.info(`✅ Export Templates extracted to ${exportTemplateExtractedPath}`);
+                    fs.renameSync(path_1.default.join(exportTemplateExtractedPath, 'templates'), exportTemplatePath);
+                    core.info(`✅ ${path_1.default.join(path_1.default.dirname(exportTemplateExtractedPath), 'templates')} moved to ${exportTemplatePath}`);
+                    core.endGroup();
+                    // Show extracted Export Template files recursively
+                    core.startGroup(`📄 Showing extracted files recursively...`);
+                    yield (0, utils_1.findExecutablesRecursively)(platform, exportTemplatePath, '');
+                    core.info(`✅ Files shown`);
+                    core.endGroup();
+                    // Save extracted Godot contents to cache
+                    core.startGroup(`💾 Saving extracted Godot download to cache...`);
+                    yield cache.saveCache([godotInstallationPath, exportTemplatePath], godotUrl);
+                    core.info(`✅ Godot saved to cache`);
+                    core.endGroup();
+                }
             }
             core.startGroup(`🚀 Executables:`);
             for (const executable of executables) {
