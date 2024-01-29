@@ -252,8 +252,7 @@ async function run(platform: Platform): Promise<void> {
     core.startGroup(`🔗 Creating symlinks to executables...`)
 
     // If the alias already exists, remove it before renewing
-    if(fs.existsSync(godotAlias))
-      fs.rmSync(godotAlias);
+    if (fs.existsSync(godotAlias)) fs.rmSync(godotAlias)
 
     // Create alias
     fs.linkSync(godotExecutable, godotAlias)
