@@ -120,6 +120,10 @@ async function run(platform: Platform): Promise<void> {
       core.endGroup()
 
       core.startGroup(`📥 Downloading Godot to ${godotDownloadPath}...`)
+
+      // If the ZIP file still exists locally, delete it before downloading
+      if (fs.existsSync(godotDownloadPath)) fs.rmSync(godotDownloadPath)
+
       const godotDownloadedPath = await toolsCache.downloadTool(
         godotUrl,
         godotDownloadPath
@@ -130,6 +134,11 @@ async function run(platform: Platform): Promise<void> {
       core.startGroup(
         `📥 Downloading Export Templates to ${exportTemplateDownloadPath}...`
       )
+
+      // If the ZIP file still exists locally, delete it before downloading
+      if (fs.existsSync(exportTemplateDownloadPath))
+        fs.rmSync(exportTemplateDownloadPath)
+
       const templateDownloadedPath = await toolsCache.downloadTool(
         exportTemplateUrl,
         exportTemplateDownloadPath
@@ -250,12 +259,20 @@ async function run(platform: Platform): Promise<void> {
     // Create symlink to Godot executable
     const godotAlias = path.join(binDir, 'godot')
     core.startGroup(`🔗 Creating symlinks to executables...`)
+
+    // If an alias already exists, remove it before creating the new alias
+    if (fs.existsSync(godotAlias)) fs.unlinkSync(godotAlias)
+
     fs.linkSync(godotExecutable, godotAlias)
     core.info(`✅ Symlink to Godot created`)
     const godotSharpDirAlias = path.join(binDir, 'GodotSharp')
     if (useDotnet) {
       // Create symlink to GodotSharp directory
       const godotSharpDir = path.join(path.dirname(godotSharp), '../..')
+
+      // If an alias already exists, remove it before creating the new alias
+      if (fs.existsSync(godotSharpDirAlias)) fs.unlinkSync(godotSharpDirAlias)
+
       fs.symlinkSync(godotSharpDir, godotSharpDirAlias)
       core.info(`✅ Symlink to GodotSharp created at ${godotSharpDirAlias}`)
     }
