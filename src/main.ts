@@ -120,13 +120,15 @@ async function run(platform: Platform): Promise<void> {
       core.endGroup()
 
       core.startGroup(`📥 Downloading Godot to ${godotDownloadPath}...`)
+      var godotDownloadedPath;
       if (!fs.existsSync(godotDownloadPath)) {
-        const godotDownloadedPath = await toolsCache.downloadTool(
+        godotDownloadedPath = await toolsCache.downloadTool(
           godotUrl,
           godotDownloadPath
         )
         core.info(`✅ Godot downloaded to ${godotDownloadedPath}`)
       } else {
+        godotDownloadedPath = godotDownloadPath;
         core.info(`✅ Godot download already exists in ${godotDownloadPath}`)
       }
       core.endGroup()
@@ -134,13 +136,15 @@ async function run(platform: Platform): Promise<void> {
       core.startGroup(
         `📥 Downloading Export Templates to ${exportTemplateDownloadPath}...`
       )
+      var templateDownloadedPath;
       if (!fs.existsSync(exportTemplateDownloadPath)) {
-        const templateDownloadedPath = await toolsCache.downloadTool(
+        templateDownloadedPath = await toolsCache.downloadTool(
           exportTemplateUrl,
           exportTemplateDownloadPath
         )
         core.info(`✅ Export Templates downloaded to ${templateDownloadedPath}`)
       } else {
+        templateDownloadedPath = exportTemplateDownloadPath;
         core.info(`✅ Export Templates download already exists in ${exportTemplateDownloadPath}`)
       }
       core.endGroup()
