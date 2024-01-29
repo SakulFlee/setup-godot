@@ -125,12 +125,26 @@ function run(platform) {
                 core.info(`🙃 Previous Godot download not found in cache`);
                 core.endGroup();
                 core.startGroup(`📥 Downloading Godot to ${godotDownloadPath}...`);
-                const godotDownloadedPath = yield toolsCache.downloadTool(godotUrl, godotDownloadPath);
-                core.info(`✅ Godot downloaded to ${godotDownloadedPath}`);
+                let godotDownloadedPath;
+                if (!fs.existsSync(godotDownloadPath)) {
+                    godotDownloadedPath = yield toolsCache.downloadTool(godotUrl, godotDownloadPath);
+                    core.info(`✅ Godot downloaded to ${godotDownloadedPath}`);
+                }
+                else {
+                    godotDownloadedPath = godotDownloadPath;
+                    core.info(`✅ Godot download already exists in ${godotDownloadPath}`);
+                }
                 core.endGroup();
                 core.startGroup(`📥 Downloading Export Templates to ${exportTemplateDownloadPath}...`);
-                const templateDownloadedPath = yield toolsCache.downloadTool(exportTemplateUrl, exportTemplateDownloadPath);
-                core.info(`✅ Export Templates downloaded to ${templateDownloadedPath}`);
+                let templateDownloadedPath;
+                if (!fs.existsSync(exportTemplateDownloadPath)) {
+                    templateDownloadedPath = yield toolsCache.downloadTool(exportTemplateUrl, exportTemplateDownloadPath);
+                    core.info(`✅ Export Templates downloaded to ${templateDownloadedPath}`);
+                }
+                else {
+                    templateDownloadedPath = exportTemplateDownloadPath;
+                    core.info(`✅ Export Templates download already exists in ${exportTemplateDownloadPath}`);
+                }
                 core.endGroup();
                 // Extract Godot
                 core.startGroup(`📦 Extracting Godot to ${installationDir}...`);
